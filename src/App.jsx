@@ -6,6 +6,12 @@ import {
   updateFriend,
   deleteFriend,
 } from "./utils/friendsApi";
+import { FriendForm } from "./components/FriendForm";
+import { FriendCard } from "./components/FriendCard";
+import { Login } from "./components/Login";
+import { Signup } from "./components/Signup";
+import { useAuth } from "./context/AuthContext";
+import "./styles/common.css";
 
 function App() {
   const [friends, setFriends] = useState([]);
@@ -18,6 +24,8 @@ function App() {
     phone: "",
   });
   const [editingFriend, setEditingFriend] = useState(null);
+  const { user, isAdmin } = useAuth();
+  const [showSignup, setShowSignup] = useState(false);
 
   useEffect(() => {
     loadFriends();
@@ -32,15 +40,13 @@ function App() {
     }
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-
+  async function handleSubmit(formData) {
     try {
       if (editingFriend) {
-        await updateFriend(editingFriend.id, newFriend);
+        await updateFriend(editingFriend.id, formData);
         setEditingFriend(null);
       } else {
-        await createFriend(newFriend);
+        await createFriend(formData);
       }
 
       // Reset form
@@ -79,6 +85,7 @@ function App() {
 
   function handleEdit(friend) {
     setEditingFriend(friend);
+    // Only set the editable fields
     setNewFriend({
       name: friend.name,
       age: friend.age,
@@ -89,190 +96,56 @@ function App() {
     });
   }
 
-  return (
-    <div>
-      <h1>Friends List</h1>
-
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          marginBottom: "30px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          maxWidth: "400px",
-          width: "100%",
-        }}
-      >
-        <h2>{editingFriend ? "Edit Friend" : "Add New Friend"}</h2>
-        <input
-          type="text"
-          name="name"
-          placeholder="Name"
-          value={newFriend.name}
-          onChange={handleInputChange}
-          required
-          style={{ padding: "8px" }}
-        />
-        <input
-          type="number"
-          name="age"
-          placeholder="Age"
-          value={newFriend.age}
-          onChange={handleInputChange}
-          required
-          style={{ padding: "8px" }}
-        />
-        <input
-          type="text"
-          name="address"
-          placeholder="Address"
-          value={newFriend.address}
-          onChange={handleInputChange}
-          required
-          style={{ padding: "8px" }}
-        />
-        <input
-          type="text"
-          name="job"
-          placeholder="Job"
-          value={newFriend.job}
-          onChange={handleInputChange}
-          required
-          style={{ padding: "8px" }}
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={newFriend.email}
-          onChange={handleInputChange}
-          required
-          style={{ padding: "8px" }}
-        />
-        <input
-          type="tel"
-          name="phone"
-          placeholder="Phone"
-          value={newFriend.phone}
-          onChange={handleInputChange}
-          required
-          style={{ padding: "8px" }}
-        />
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            type="submit"
-            style={{
-              padding: "10px",
-              backgroundColor: editingFriend ? "#2196F3" : "#4CAF50",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              flex: 1,
-            }}
-          >
-            {editingFriend ? "Update Friend" : "Add Friend"}
-          </button>
-          {editingFriend && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingFriend(null);
-                setNewFriend({
-                  name: "",
-                  age: "",
-                  address: "",
-                  job: "",
-                  email: "",
-                  phone: "",
-                });
-              }}
-              style={{
-                padding: "10px",
-                backgroundColor: "#grey",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                flex: 1,
-              }}
+  if (!user) {
+    return (
+      <div>
+        {showSignup ? (
+          <>
+            <Signup />
+            <button 
+              className="button button-primary"
+              style={{ margin: '0 auto', display: 'block' }}
+              onClick={() => setShowSignup(false)}
             >
-              Cancel
+              Back to Login
             </button>
-          )}
-        </div>
-      </form>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "20px" }}>
-        {friends.map((friend) => (
-          <div
-            key={friend.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: "15px",
-              borderRadius: "8px",
-              flex: "1",
-            }}
-          >
-            <h2>{friend.name}</h2>
-            <p>
-              <strong>Age:</strong> {friend.age}
-            </p>
-            <p>
-              <strong>Job:</strong> {friend.job}
-            </p>
-            <p>
-              <strong>Email:</strong> {friend.email}
-            </p>
-            <p>
-              <strong>Phone:</strong> {friend.phone}
-            </p>
-            <p>
-              <strong>Address:</strong> {friend.address}
-            </p>
-            <p>
-              <strong>Member since:</strong>{" "}
-              {new Date(friend.created_at).toLocaleDateString()}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                marginTop: "15px",
-              }}
+          </>
+        ) : (
+          <>
+            <Login />
+            <button 
+              className="button button-primary"
+              style={{ margin: '0 auto', display: 'block' }}
+              onClick={() => setShowSignup(true)}
             >
-              <button
-                onClick={() => handleEdit(friend)}
-                style={{
-                  padding: "8px",
-                  backgroundColor: "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(friend.id)}
-                style={{
-                  padding: "8px",
-                  backgroundColor: "#f44336",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  flex: 1,
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
+              Create Admin User
+            </button>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="container">
+      <h1 className="title">Friends List</h1>
+      
+      {isAdmin && (
+        <FriendForm 
+          onSubmit={handleSubmit}
+          initialData={editingFriend}
+          onCancel={() => setEditingFriend(null)}
+        />
+      )}
+
+      <div className="friends-grid">
+        {friends.map((friend) => (
+          <FriendCard
+            key={friend.id}
+            friend={friend}
+            onEdit={isAdmin ? handleEdit : undefined}
+            onDelete={isAdmin ? handleDelete : undefined}
+          />
         ))}
       </div>
     </div>

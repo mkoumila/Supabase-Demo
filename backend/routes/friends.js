@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
+const { checkAdmin } = require('../middleware/auth');
 
-// Get all friends
+// Public route - anyone can read
 router.get('/', async (req, res) => {
   try {
     const { data, error } = await supabase.from("friends").select();
@@ -13,8 +14,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Create a new friend
-router.post('/', async (req, res) => {
+// Protected routes - only admins can modify
+router.post('/', checkAdmin, async (req, res) => {
   try {
     const { error } = await supabase
       .from("friends")
@@ -26,22 +27,28 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update a friend
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkAdmin, async (req, res) => {
   try {
-    const { error } = await supabase
+    // Remove any id from the request body to prevent id update attempts
+    const { id, created_at, ...updateData } = req.body;
+    
+    const { data, error } = await supabase
       .from("friends")
-      .update(req.body)
-      .eq('id', req.params.id);
+      .update(updateData)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
     if (error) throw error;
-    res.json({ message: 'Friend updated successfully' });
+    
+    res.json({ message: 'Friend updated successfully', data });
   } catch (error) {
+    console.error('Update error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Delete a friend
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkAdmin, async (req, res) => {
   try {
     const { error } = await supabase
       .from("friends")
