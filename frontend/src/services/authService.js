@@ -1,82 +1,77 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 export const authService = {
   async login(email, password) {
-    console.log('Frontend login attempt:', { email, API_URL });
-    
     const url = `${API_URL}/auth/login`;
     const requestOptions = {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password }),
     };
 
-    console.log('Making request to:', url);
-    
     const response = await fetch(url, requestOptions);
-    console.log('Response status:', response.status);
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('Login error:', error);
-      throw new Error(error.error || 'Login failed');
+      console.error("Login error:", error);
+      throw new Error(error.error || "Login failed");
     }
 
     const data = await response.json();
-    console.log('Login successful');
-    localStorage.setItem('token', data.token);
+
+    localStorage.setItem("token", data.token);
     return data;
   },
 
   async logout() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      console.log('No token found, clearing session');
-      localStorage.removeItem('token');
+      console.log("No token found, clearing session");
+      localStorage.removeItem("token");
       return;
     }
 
     try {
       const response = await fetch(`${API_URL}/auth/logout`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (!response.ok) {
-        console.error('Logout failed:', response.status);
-        localStorage.removeItem('token');
+        console.error("Logout failed:", response.status);
+        localStorage.removeItem("token");
         const error = await response.json();
-        throw new Error(error.error || 'Logout failed');
+        throw new Error(error.error || "Logout failed");
       }
 
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
     } catch (error) {
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       throw error;
     }
   },
 
   async getCurrentSession() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) return null;
 
     const response = await fetch(`${API_URL}/auth/session`, {
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
-      localStorage.removeItem('token');
+      localStorage.removeItem("token");
       return null;
     }
 
     const user = await response.json();
     return user;
-  }
-}; 
+  },
+};
