@@ -1,4 +1,3 @@
-import "./App.css";
 import { useEffect, useState } from "react";
 import {
   getFriends,
@@ -9,9 +8,8 @@ import {
 import { FriendForm } from "./components/FriendForm";
 import { FriendCard } from "./components/FriendCard";
 import { Login } from "./components/Login";
-import { Signup } from "./components/Signup";
 import { useAuth } from "./context/AuthContext";
-import "./styles/common.css";
+import { supabase } from "./utils/supabaseClient";
 
 function App() {
   const [friends, setFriends] = useState([]);
@@ -24,12 +22,13 @@ function App() {
     phone: "",
   });
   const [editingFriend, setEditingFriend] = useState(null);
-  const { user, isAdmin } = useAuth();
-  const [showSignup, setShowSignup] = useState(false);
+  const { user, isAdmin, loading } = useAuth();
 
   useEffect(() => {
-    loadFriends();
-  }, []);
+    if (user) {
+      loadFriends();
+    }
+  }, [user]);
 
   async function loadFriends() {
     try {
@@ -37,6 +36,14 @@ function App() {
       setFriends(data);
     } catch (error) {
       console.error("Error loading friends:", error);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("Error logging out:", error);
     }
   }
 
@@ -85,7 +92,6 @@ function App() {
 
   function handleEdit(friend) {
     setEditingFriend(friend);
-    // Only set the editable fields
     setNewFriend({
       name: friend.name,
       age: friend.age,
@@ -96,49 +102,52 @@ function App() {
     });
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
   if (!user) {
     return (
-      <div>
-        {showSignup ? (
-          <>
-            <Signup />
-            <button 
-              className="button button-primary"
-              style={{ margin: '0 auto', display: 'block' }}
-              onClick={() => setShowSignup(false)}
-            >
-              Back to Login
-            </button>
-          </>
-        ) : (
-          <>
-            <Login />
-            <button 
-              className="button button-primary"
-              style={{ margin: '0 auto', display: 'block' }}
-              onClick={() => setShowSignup(true)}
-            >
-              Create Admin User
-            </button>
-          </>
-        )}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full">
+          <Login />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <h1 className="title">Friends List</h1>
-      
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Friends List</h1>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-500">
+            Welcome, {user.email}
+          </span>
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+
       {isAdmin && (
-        <FriendForm 
-          onSubmit={handleSubmit}
-          initialData={editingFriend}
-          onCancel={() => setEditingFriend(null)}
-        />
+        <div className="bg-gray-50 shadow rounded-lg mb-8">
+          <FriendForm
+            onSubmit={handleSubmit}
+            initialData={editingFriend}
+            onCancel={() => setEditingFriend(null)}
+          />
+        </div>
       )}
 
-      <div className="friends-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {friends.map((friend) => (
           <FriendCard
             key={friend.id}

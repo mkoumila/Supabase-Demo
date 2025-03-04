@@ -1,4 +1,3 @@
-const { createClient } = require('@supabase/supabase-js');
 const supabase = require('../config/supabase');
 
 const checkAdmin = async (req, res, next) => {

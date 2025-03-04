@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { useState } from "react";
+import { supabase } from "../utils/supabaseClient";
 
-export function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export function Signup({ onToggleLogin }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
@@ -15,24 +15,26 @@ export function Signup() {
     setMessage(null);
 
     try {
-      // 1. Create the user
-      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+      const {
+        data: { user },
+        error: signUpError,
+      } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (signUpError) throw signUpError;
 
-      // 2. Add admin role
+      // Add user role (default to 'user')
       const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert([
-          { user_id: user.id, role: 'admin' }
-        ]);
+        .from("user_roles")
+        .insert([{ user_id: user.id, role: "user" }]);
 
       if (roleError) throw roleError;
 
-      setMessage('Admin user created successfully!');
+      setMessage(
+        "Account created successfully! Please check your email for verification."
+      );
     } catch (error) {
       setError(error.message);
     } finally {
@@ -41,10 +43,10 @@ export function Signup() {
   };
 
   return (
-    <div className="login-container">
-      <h2>Create Admin User</h2>
-      {error && <div className="error">{error}</div>}
-      {message && <div className="success">{message}</div>}
+    <div>
+      <h2>Create Account</h2>
+      {error && <div>{error}</div>}
+      {message && <div>{message}</div>}
       <form onSubmit={handleSignup}>
         <input
           type="email"
@@ -52,7 +54,6 @@ export function Signup() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="input-field"
         />
         <input
           type="password"
@@ -60,12 +61,14 @@ export function Signup() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="input-field"
         />
-        <button type="submit" className="button button-primary" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Admin'}
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating..." : "Sign Up"}
         </button>
       </form>
+      <p>
+        Already have an account? <button onClick={onToggleLogin}>Login</button>
+      </p>
     </div>
   );
-} 
+}
