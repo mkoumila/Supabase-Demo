@@ -1,60 +1,76 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../utils/supabaseClient';
+import { authService } from '../services/authService';
 
-const AuthContext = createContext({});
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      checkAdminStatus(session?.user?.id);
-    });
-
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      checkAdminStatus(session?.user?.id);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkUser();
   }, []);
 
-  const checkAdminStatus = async (userId) => {
-    if (!userId) {
-      setIsAdmin(false);
-      return;
+  // Update isAdmin whenever user changes
+  useEffect(() => {
+    setIsAdmin(user?.role === 'admin');
+  }, [user]);
+
+  async function checkUser() {
+    try {
+      const session = await authService.getCurrentSession();
+      setUser(session);
+    } catch (error) {
+      console.error('Error checking user session:', error);
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
+  }
 
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error checking admin status:', error);
-      setIsAdmin(false);
-      return;
+  const login = async (email, password) => {
+    try {
+      const data = await authService.login(email, password);
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      throw error;
     }
+  };
 
-    setIsAdmin(data?.role === 'admin');
+  const logout = async () => {
+    try {
+      await authService.logout();
+      setUser(null);
+      setIsAdmin(false);
+    } catch (error) {
+      console.error('Error logging out:', error);
+      setUser(null);
+      setIsAdmin(false);
+      throw error;
+    }
   };
 
   const value = {
     user,
-    isAdmin,
-    loading
+    loading,
+    login,
+    logout,
+    isAdmin
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-}; 
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+} 

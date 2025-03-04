@@ -18,10 +18,7 @@ body {
 }
 
 a {
-  @apply font-medium text-blue-500;
-}
-a:hover {
-  @apply text-blue-600;
+  @apply font-medium;
 }
 
 button {

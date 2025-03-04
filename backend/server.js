@@ -1,22 +1,26 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const friendsRouter = require('./routes/friends');
+const friendRoutes = require('./routes/friendRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
-// Verify environment variables are loaded
-console.log('Environment check:', {
-  url: process.env.SUPABASE_URL ? 'Set' : 'Missing',
-  key: process.env.SUPABASE_ANON_KEY ? 'Set' : 'Missing'
-});
-
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/friends', friendsRouter);
+// Auth routes should come BEFORE other routes
+app.use('/api/auth', authRoutes);
+app.use('/api', friendRoutes);
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: err.message || 'Something went wrong!' });
+});
+
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 }); 
