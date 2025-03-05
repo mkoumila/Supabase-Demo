@@ -1,5 +1,16 @@
+/**
+ * Friend Model
+ * Handles all database operations for the friends table
+ * Uses Supabase as the database provider
+ */
+
 const { supabase } = require('../utils/supabaseClient');
 
+/**
+ * Retrieve all friends from the database
+ * @returns {Promise<Array>} Array of friend objects
+ * @throws {Error} If database operation fails
+ */
 const getAll = async () => {
   try {
     const { data, error } = await supabase
@@ -14,6 +25,13 @@ const getAll = async () => {
   }
 };
 
+/**
+ * Create a new friend in the database
+ * @param {Object} friendData - Friend information (name, age, job, etc.)
+ * @param {string} userId - ID of the user creating the friend
+ * @returns {Promise<Object>} Created friend object
+ * @throws {Error} If database operation fails
+ */
 const create = async (friendData, userId) => {
   try {
     const { data, error } = await supabase
@@ -32,6 +50,13 @@ const create = async (friendData, userId) => {
   }
 };
 
+/**
+ * Update an existing friend's information
+ * @param {string} id - Friend ID to update
+ * @param {Object} friendData - Updated friend information
+ * @returns {Promise<Object>} Updated friend object
+ * @throws {Error} If database operation fails
+ */
 const update = async (id, friendData) => {
   try {
     const { data, error } = await supabase
@@ -48,6 +73,12 @@ const update = async (id, friendData) => {
   }
 };
 
+/**
+ * Delete a friend from the database
+ * @param {string} id - Friend ID to delete
+ * @returns {Promise<boolean>} True if deletion was successful
+ * @throws {Error} If database operation fails
+ */
 const remove = async (id) => {
   try {
     const { error } = await supabase

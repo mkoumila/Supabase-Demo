@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { friendService } from "../services/friendService";
 import { FriendForm } from "../components/FriendForm";
-import { Login } from "../components/Login";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "../components/ui/input";
 import {
@@ -13,11 +12,24 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Pagination from "../components/ui/pagination";
+import { Sidebar } from "../components/ui/Sidebar";
+import { Button } from "../components/ui/button";
+import LoginPage from "./LoginPage";
 
 /**
  * DashboardPage Component
- * 
+ *
  * Protected admin dashboard that provides CRUD operations for friends.
  * Features include:
  * - Authentication check
@@ -35,6 +47,9 @@ function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
   const itemsPerPage = 5; // Number of items to display per page
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [friendToDelete, setFriendToDelete] = useState(null);
 
   // Auth context and navigation
   const { user, isAdmin, loading, logout } = useAuth();
@@ -122,6 +137,15 @@ function DashboardPage() {
   };
 
   /**
+   * Add function to show temporary success message
+   * @param {string} message - The message to show
+   */
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(null), 3000); // Hide after 3 seconds
+  };
+
+  /**
    * Handle form submission for creating/updating a friend
    * @param {Object} formData - The form data to submit
    */
@@ -130,8 +154,10 @@ function DashboardPage() {
       if (editingFriend) {
         await friendService.updateFriend(editingFriend.id, formData);
         setEditingFriend(null);
+        showSuccessMessage("Friend updated successfully!");
       } else {
         await friendService.createFriend(formData);
+        showSuccessMessage("Friend created successfully!");
       }
       loadFriends();
       setError(null);
@@ -147,17 +173,28 @@ function DashboardPage() {
    * Shows confirmation dialog before deleting
    * @param {string} id - The ID of the friend to delete
    */
-  async function handleDelete(id) {
-    if (!window.confirm("Are you sure you want to delete this friend?")) return;
+  const handleDeleteClick = (friend) => {
+    setFriendToDelete(friend);
+    setDeleteDialogOpen(true);
+  };
+
+  /**
+   * New function to handle actual deletion
+   */
+  const handleConfirmDelete = async () => {
     try {
-      await friendService.deleteFriend(id);
+      await friendService.deleteFriend(friendToDelete.id);
       loadFriends();
       setError(null);
+      showSuccessMessage("Friend deleted successfully!");
     } catch (error) {
       console.error("Error deleting friend:", error);
       setError(error.message || "Failed to delete friend");
+    } finally {
+      setDeleteDialogOpen(false);
+      setFriendToDelete(null);
     }
-  }
+  };
 
   // Show loading spinner while authentication is being checked
   if (loading) {
@@ -168,162 +205,183 @@ function DashboardPage() {
     );
   }
 
-  // Show login form if user is not authenticated
+  // Show login page if user is not authenticated
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
-          <Login />
-        </div>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header section with navigation and user info */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <Link
-            to="/"
-            className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 underline transition-colors"
-          >
-            View Public List
-          </Link>
-        </div>
-        <div className="flex items-center space-x-4">
-          <span className="text-sm text-gray-500">
-            Welcome, {user.email} {isAdmin ? "(Admin)" : ""}
-          </span>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+    <div className="flex h-screen bg-gray-100">
+      {/* Sidebar */}
+      <Sidebar user={user} isAdmin={isAdmin} onLogout={handleLogout} />
 
-      {/* Error message display */}
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-          {error}
-        </div>
-      )}
-
-      {/* Add New Friend button - only visible to admin users when form is hidden */}
-      {isAdmin && !showForm && (
-        <div className="mb-8">
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            Add New Friend
-          </button>
-        </div>
-      )}
-
-      {/* Friend form for adding/editing - only visible to admin users when needed */}
-      {isAdmin && showForm && (
-        <div className="bg-white shadow rounded-lg mb-8">
-          <FriendForm
-            onSubmit={handleSubmit}
-            initialData={editingFriend}
-            onCancel={handleCancel}
-          />
-        </div>
-      )}
-
-      {/* Main content section with search and table */}
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        {/* Search input section */}
-        <div className="p-4 border-b">
-          <div className="max-w-sm">
-            <Input
-              type="text"
-              placeholder="Search friends by name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Friends List
+              </h1>
+              <p className="mt-1 text-sm text-gray-600">
+                Manage and organize your friends
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowForm(true)}
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Add New Friend
+            </Button>
           </div>
-        </div>
 
-        {/* Table section with horizontal scroll */}
-        <div className="w-full overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[150px]">Name</TableHead>
-                <TableHead className="min-w-[80px]">Age</TableHead>
-                <TableHead className="min-w-[150px]">Job</TableHead>
-                <TableHead className="min-w-[200px]">Email</TableHead>
-                <TableHead className="min-w-[150px]">Phone</TableHead>
-                <TableHead className="min-w-[200px]">Address</TableHead>
-                <TableHead className="min-w-[120px]">Created At</TableHead>
-                {isAdmin && <TableHead className="min-w-[120px]">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {/* Show message when no friends are found */}
-              {currentFriends.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={isAdmin ? 8 : 7}
-                    className="text-center py-4"
-                  >
-                    {searchQuery ? "No friends found matching your search" : "No friends found"}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                // Map through friends and display their data
-                currentFriends.map((friend) => (
-                  <TableRow key={friend.id}>
-                    <TableCell className="font-medium">{friend.name}</TableCell>
-                    <TableCell>{friend.age}</TableCell>
-                    <TableCell>{friend.job}</TableCell>
-                    <TableCell>{friend.email}</TableCell>
-                    <TableCell>{friend.phone}</TableCell>
-                    <TableCell>{friend.address}</TableCell>
-                    <TableCell>
-                      {new Date(friend.created_at).toLocaleDateString()}
-                    </TableCell>
+          {successMessage && (
+            <div className="mb-4 p-4 text-sm text-green-800 bg-green-100 rounded-lg">
+              {successMessage}
+            </div>
+          )}
+
+          {error && (
+            <div className="mb-4 p-4 text-sm text-red-800 bg-red-100 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {/* Friend form for adding/editing - only visible to admin users when needed */}
+          {showForm && (
+            <div className="bg-white shadow rounded-lg mb-8">
+              <FriendForm
+                onSubmit={handleSubmit}
+                initialData={editingFriend}
+                onCancel={handleCancel}
+              />
+            </div>
+          )}
+
+          {/* Main content section with search and table */}
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            {/* Search input section */}
+            <div className="p-4 border-b">
+              <div className="max-w-sm">
+                <Input
+                  type="text"
+                  placeholder="Search friends by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+            </div>
+
+            {/* Table section with horizontal scroll */}
+            <div className="w-full overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Name</TableHead>
+                    <TableHead className="min-w-[80px]">Age</TableHead>
+                    <TableHead className="min-w-[150px]">Job</TableHead>
+                    <TableHead className="min-w-[200px]">Email</TableHead>
+                    <TableHead className="min-w-[150px]">Phone</TableHead>
+                    <TableHead className="min-w-[200px]">Address</TableHead>
+                    <TableHead className="min-w-[120px]">Created At</TableHead>
                     {isAdmin && (
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(friend)}
-                            className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(friend.id)}
-                            className="px-3 py-1 text-sm text-red-600 hover:text-red-800 font-medium"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </TableCell>
+                      <TableHead className="min-w-[120px]">Actions</TableHead>
                     )}
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody>
+                  {/* Show message when no friends are found */}
+                  {currentFriends.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={isAdmin ? 8 : 7}
+                        className="text-center py-4"
+                      >
+                        {searchQuery
+                          ? "No friends found matching your search"
+                          : "No friends found"}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    // Map through friends and display their data
+                    currentFriends.map((friend) => (
+                      <TableRow key={friend.id}>
+                        <TableCell className="font-medium">
+                          {friend.name}
+                        </TableCell>
+                        <TableCell>{friend.age}</TableCell>
+                        <TableCell>{friend.job}</TableCell>
+                        <TableCell>{friend.email}</TableCell>
+                        <TableCell>{friend.phone}</TableCell>
+                        <TableCell>{friend.address}</TableCell>
+                        <TableCell>
+                          {new Date(friend.created_at).toLocaleDateString()}
+                        </TableCell>
+                        {isAdmin && (
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                onClick={() => handleEdit(friend)}
+                                variant="outline"
+                                size="sm"
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                onClick={() => handleDeleteClick(friend)}
+                                variant="destructive"
+                                size="sm"
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
 
-          {/* Pagination component - only shown if there are more items than itemsPerPage */}
-          {filteredFriends.length > itemsPerPage && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              className="border-t"
-            />
-          )}
+              {/* Pagination component - only shown if there are more items than itemsPerPage */}
+              {filteredFriends.length > itemsPerPage && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  className="border-t"
+                />
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Add AlertDialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete{" "}
+              <span className="font-semibold">{friendToDelete?.name}</span>'s data
+              from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
