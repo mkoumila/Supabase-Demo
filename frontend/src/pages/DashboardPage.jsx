@@ -15,24 +15,39 @@ import {
 } from "../components/ui/table";
 import Pagination from "../components/ui/pagination";
 
+/**
+ * DashboardPage Component
+ * 
+ * Protected admin dashboard that provides CRUD operations for friends.
+ * Features include:
+ * - Authentication check
+ * - Admin-only actions (add, edit, delete)
+ * - Search functionality
+ * - Pagination
+ * - Form handling for adding/editing friends
+ */
 function DashboardPage() {
+  // State management for friends and UI controls
   const [friends, setFriends] = useState([]);
   const [editingFriend, setEditingFriend] = useState(null);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const itemsPerPage = 5;
+  const itemsPerPage = 5; // Number of items to display per page
+
+  // Auth context and navigation
   const { user, isAdmin, loading, logout } = useAuth();
   const navigate = useNavigate();
 
+  // Load friends when user is authenticated
   useEffect(() => {
     if (user) {
       loadFriends();
     }
   }, [user]);
 
-  // Filter friends based on search query
+  // Filter friends based on search query (case-insensitive)
   const filteredFriends = friends.filter((friend) =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -48,11 +63,19 @@ function DashboardPage() {
     setCurrentPage(1);
   }, [searchQuery]);
 
+  /**
+   * Handle page change in pagination
+   * @param {number} page - The page number to navigate to
+   */
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /**
+   * Fetch friends data from the API
+   * Handles loading state and error handling
+   */
   async function loadFriends() {
     try {
       const data = await friendService.getAllFriends();
@@ -64,6 +87,10 @@ function DashboardPage() {
     }
   }
 
+  /**
+   * Handle user logout
+   * Redirects to home page after successful logout
+   */
   async function handleLogout() {
     try {
       await logout();
@@ -74,17 +101,30 @@ function DashboardPage() {
     }
   }
 
+  /**
+   * Handle editing a friend
+   * Shows the form and scrolls to top
+   * @param {Object} friend - The friend object to edit
+   */
   function handleEdit(friend) {
     setEditingFriend(friend);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  /**
+   * Handle form cancellation
+   * Resets form state and hides the form
+   */
   const handleCancel = () => {
     setEditingFriend(null);
     setShowForm(false);
   };
 
+  /**
+   * Handle form submission for creating/updating a friend
+   * @param {Object} formData - The form data to submit
+   */
   async function handleSubmit(formData) {
     try {
       if (editingFriend) {
@@ -102,7 +142,13 @@ function DashboardPage() {
     }
   }
 
+  /**
+   * Handle friend deletion
+   * Shows confirmation dialog before deleting
+   * @param {string} id - The ID of the friend to delete
+   */
   async function handleDelete(id) {
+    if (!window.confirm("Are you sure you want to delete this friend?")) return;
     try {
       await friendService.deleteFriend(id);
       loadFriends();
@@ -113,6 +159,7 @@ function DashboardPage() {
     }
   }
 
+  // Show loading spinner while authentication is being checked
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -121,6 +168,7 @@ function DashboardPage() {
     );
   }
 
+  // Show login form if user is not authenticated
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -133,6 +181,7 @@ function DashboardPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header section with navigation and user info */}
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center space-x-4">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
@@ -156,12 +205,14 @@ function DashboardPage() {
         </div>
       </div>
 
+      {/* Error message display */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>
       )}
 
+      {/* Add New Friend button - only visible to admin users when form is hidden */}
       {isAdmin && !showForm && (
         <div className="mb-8">
           <button
@@ -173,6 +224,7 @@ function DashboardPage() {
         </div>
       )}
 
+      {/* Friend form for adding/editing - only visible to admin users when needed */}
       {isAdmin && showForm && (
         <div className="bg-white shadow rounded-lg mb-8">
           <FriendForm
@@ -183,7 +235,9 @@ function DashboardPage() {
         </div>
       )}
 
+      {/* Main content section with search and table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
+        {/* Search input section */}
         <div className="p-4 border-b">
           <div className="max-w-sm">
             <Input
@@ -195,6 +249,8 @@ function DashboardPage() {
             />
           </div>
         </div>
+
+        {/* Table section with horizontal scroll */}
         <div className="w-full overflow-x-auto">
           <Table>
             <TableHeader>
@@ -206,24 +262,22 @@ function DashboardPage() {
                 <TableHead className="min-w-[150px]">Phone</TableHead>
                 <TableHead className="min-w-[200px]">Address</TableHead>
                 <TableHead className="min-w-[120px]">Created At</TableHead>
-                {isAdmin && (
-                  <TableHead className="min-w-[120px]">Actions</TableHead>
-                )}
+                {isAdmin && <TableHead className="min-w-[120px]">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* Show message when no friends are found */}
               {currentFriends.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={isAdmin ? 8 : 7}
                     className="text-center py-4"
                   >
-                    {searchQuery
-                      ? "No friends found matching your search"
-                      : "No friends found"}
+                    {searchQuery ? "No friends found matching your search" : "No friends found"}
                   </TableCell>
                 </TableRow>
               ) : (
+                // Map through friends and display their data
                 currentFriends.map((friend) => (
                   <TableRow key={friend.id}>
                     <TableCell className="font-medium">{friend.name}</TableCell>
@@ -258,6 +312,8 @@ function DashboardPage() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination component - only shown if there are more items than itemsPerPage */}
           {filteredFriends.length > itemsPerPage && (
             <Pagination
               currentPage={currentPage}

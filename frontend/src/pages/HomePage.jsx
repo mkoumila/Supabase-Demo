@@ -12,19 +12,32 @@ import {
 } from "../components/ui/table";
 import Pagination from "../components/ui/pagination";
 
+/**
+ * HomePage Component
+ * 
+ * Public page that displays a list of friends in a table format.
+ * Features include:
+ * - Pagination
+ * - Search functionality
+ * - Responsive table layout
+ * - Loading states
+ * - Error handling
+ */
 function HomePage() {
+  // State management for friends list and UI controls
   const [friends, setFriends] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const itemsPerPage = 5;
+  const itemsPerPage = 5; // Number of items to display per page
 
+  // Load friends data when component mounts
   useEffect(() => {
     loadFriends();
   }, []);
 
-  // Filter friends based on search query
+  // Filter friends based on search query (case-insensitive)
   const filteredFriends = friends.filter((friend) =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -40,11 +53,19 @@ function HomePage() {
     setCurrentPage(1);
   }, [searchQuery]);
 
+  /**
+   * Handle page change in pagination
+   * @param {number} page - The page number to navigate to
+   */
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  /**
+   * Fetch friends data from the API
+   * Handles loading state and error handling
+   */
   async function loadFriends() {
     try {
       setLoading(true);
@@ -59,6 +80,7 @@ function HomePage() {
     }
   }
 
+  // Show loading spinner while data is being fetched
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -69,6 +91,7 @@ function HomePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header section with title and dashboard link */}
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Friends List</h1>
         <Link
@@ -79,13 +102,16 @@ function HomePage() {
         </Link>
       </div>
 
+      {/* Error message display */}
       {error && (
         <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
           {error}
         </div>
       )}
 
+      {/* Main content section with search and table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
+        {/* Search input section */}
         <div className="p-4 border-b">
           <div className="max-w-sm">
             <Input
@@ -97,6 +123,8 @@ function HomePage() {
             />
           </div>
         </div>
+
+        {/* Table section with horizontal scroll */}
         <div className="w-full overflow-x-auto">
           <Table>
             <TableHeader>
@@ -111,6 +139,7 @@ function HomePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {/* Show message when no friends are found */}
               {currentFriends.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-4">
@@ -118,6 +147,7 @@ function HomePage() {
                   </TableCell>
                 </TableRow>
               ) : (
+                // Map through friends and display their data
                 currentFriends.map((friend) => (
                   <TableRow key={friend.id}>
                     <TableCell className="font-medium">{friend.name}</TableCell>
@@ -134,6 +164,8 @@ function HomePage() {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination component - only shown if there are more items than itemsPerPage */}
           {filteredFriends.length > itemsPerPage && (
             <Pagination
               currentPage={currentPage}
