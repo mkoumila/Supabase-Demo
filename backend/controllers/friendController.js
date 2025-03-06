@@ -4,8 +4,8 @@
  * Processes requests and sends responses for friend-related operations
  */
 
-const Friend = require('../models/Friend');
-const User = require('../models/User');
+const Friend = require('../services/Friend');
+const User = require('../services/User');
 
 /**
  * Get all friends

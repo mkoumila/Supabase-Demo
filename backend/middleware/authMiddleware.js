@@ -4,7 +4,7 @@
  * Used to protect routes that require authentication
  */
 
-const User = require('../models/User');
+const User = require('../services/User');
 
 /**
  * Middleware to verify authentication tokens
