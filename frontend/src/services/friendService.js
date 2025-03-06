@@ -1,9 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL;
-const API_PREFIX = import.meta.env.VITE_API_PREFIX;
 
 export const friendService = {
   async getAllFriends() {
-    const response = await fetch(`${API_URL}${API_PREFIX}/friends`);
+    const response = await fetch(`${API_URL}/api/friends`);
     if (!response.ok) {
       throw new Error("Failed to fetch friends");
     }
@@ -12,7 +11,7 @@ export const friendService = {
 
   async createFriend(friendData) {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}${API_PREFIX}/friends`, {
+    const response = await fetch(`${API_URL}/api/friends`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,7 +29,7 @@ export const friendService = {
 
   async updateFriend(id, friendData) {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}${API_PREFIX}/friends/${id}`, {
+    const response = await fetch(`${API_URL}/api/friends/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +47,7 @@ export const friendService = {
 
   async deleteFriend(id) {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}${API_PREFIX}/friends/${id}`, {
+    const response = await fetch(`${API_URL}/api/friends/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,

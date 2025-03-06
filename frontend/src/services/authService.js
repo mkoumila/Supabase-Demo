@@ -1,8 +1,8 @@
 const API_URL = import.meta.env.VITE_API_URL;
-const API_PREFIX = import.meta.env.VITE_API_PREFIX;
+
 export const authService = {
   async login(email, password) {
-    const url = `${API_URL}${API_PREFIX}/auth/login`;
+    const url = `${API_URL}/api/auth/login`;
     const requestOptions = {
       method: "POST",
       headers: {
@@ -34,7 +34,7 @@ export const authService = {
     }
 
     try {
-      const response = await fetch(`${API_URL}${API_PREFIX}/auth/logout`, {
+      const response = await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,7 +60,7 @@ export const authService = {
     const token = localStorage.getItem("token");
     if (!token) return null;
 
-    const response = await fetch(`${API_URL}${API_PREFIX}/auth/session`, {
+    const response = await fetch(`${API_URL}/api/auth/session`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

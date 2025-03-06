@@ -1,6 +1,3 @@
-// Get API configuration from environment variables
-const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/api';
-
 export const api = {
   async request(endpoint, options = {}) {
     const token = localStorage.getItem("token");
@@ -18,7 +15,7 @@ export const api = {
       },
     };
 
-    const url = `${API_PREFIX}${endpoint}`;
+    const url = `/api${endpoint}`;
 
     try {
       const response = await fetch(url, config);

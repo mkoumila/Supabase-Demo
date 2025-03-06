@@ -15,7 +15,6 @@ const app = express();
 // CORS Configuration
 // Get allowed origins from environment variable for security
 const allowedOrigins = process.env.CLIENT_URLS ? process.env.CLIENT_URLS.split(',') : [];
-const apiPrefix = process.env.API_PREFIX || '/api';
 
 // Middleware Setup
 app.use(cors({
@@ -26,7 +25,7 @@ app.use(express.json());  // Parse JSON request bodies
 
 // Health check route (no auth required)
 // Used to verify the server is running
-app.get(`${apiPrefix}/health`, (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -36,9 +35,9 @@ app.get(`${apiPrefix}/health`, (req, res) => {
 
 // Mount route handlers
 // Each route group is prefixed with the API prefix
-app.use(`${apiPrefix}/auth`, authRoutes);   // Authentication routes
-app.use(`${apiPrefix}/users`, userRoutes);  // User management routes
-app.use(apiPrefix, friendRoutes);           // Friend management routes
+app.use("/api/auth", authRoutes);   // Authentication routes
+app.use("/api/users", userRoutes);  // User management routes
+app.use("/api", friendRoutes);           // Friend management routes
 
 // 404 handler for undefined routes
 app.use((req, res) => {
