@@ -1,53 +1,53 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
-export const friendService = {
-  async getAllFriends() {
-    const response = await fetch(`${API_URL}/api/friends`);
+export const studentService = {
+  async getAllStudents() {
+    const response = await fetch(`${API_URL}/api/students`);
     if (!response.ok) {
-      throw new Error("Failed to fetch friends");
+      throw new Error("Failed to fetch students");
     }
     return response.json();
   },
 
-  async createFriend(friendData) {
+  async createStudent(studentData) {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/api/friends`, {
+    const response = await fetch(`${API_URL}/api/students`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(friendData),
+      body: JSON.stringify(studentData),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || "Failed to create friend");
+      throw new Error(error.error || "Failed to create student");
     }
     return response.json();
   },
 
-  async updateFriend(id, friendData) {
+  async updateStudent(id, studentData) {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/api/friends/${id}`, {
+    const response = await fetch(`${API_URL}/api/students/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(friendData),
+      body: JSON.stringify(studentData),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || "Failed to update friend");
+      throw new Error(error.error || "Failed to update student");
     }
     return response.json();
   },
 
-  async deleteFriend(id) {
+  async deleteStudent(id) {
     const token = localStorage.getItem("token");
-    const response = await fetch(`${API_URL}/api/friends/${id}`, {
+    const response = await fetch(`${API_URL}/api/students/${id}`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -56,7 +56,7 @@ export const friendService = {
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || "Failed to delete friend");
+      throw new Error(error.error || "Failed to delete student");
     }
     return true;
   },

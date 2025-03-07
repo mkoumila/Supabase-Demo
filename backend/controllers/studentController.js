@@ -1,44 +1,44 @@
 /**
- * Friend Controller
- * Handles the business logic between routes and the Friend model
- * Processes requests and sends responses for friend-related operations
+ * Student Controller
+ * Handles the business logic between routes and the Student model
+ * Processes requests and sends responses for student-related operations
  */
 
-const Friend = require('../services/Friend');
+const Student = require('../services/Student');
 const User = require('../services/User');
 
 /**
- * Get all friends
- * @route GET /api/friends
+ * Get all students
+ * @route GET /api/students
  * @access Public
  */
 const getAll = async (req, res) => {
   try {
-    const friends = await Friend.getAll();
-    res.json(friends);
+    const students = await Student.getAll();
+    res.json(students);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Create a new friend
- * @route POST /api/friends
+ * Create a new student
+ * @route POST /api/students
  * @access Private - Requires authentication
  */
 const create = async (req, res) => {
   try {
     const userId = req.user.id;
-    const friend = await Friend.create(req.body, userId);
-    res.status(201).json(friend);
+    const student = await Student.create(req.body, userId);
+    res.status(201).json(student);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
 /**
- * Update an existing friend
- * @route PUT /api/friends/:id
+ * Update an existing student
+ * @route PUT /api/students/:id
  * @access Private - Requires admin role
  */
 const update = async (req, res) => {
@@ -52,16 +52,16 @@ const update = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized - Admin access required' });
     }
 
-    const friend = await Friend.update(id, req.body);
-    res.json(friend);
+    const student = await Student.update(id, req.body);
+    res.json(student);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
 /**
- * Delete a friend
- * @route DELETE /api/friends/:id
+ * Delete a student
+ * @route DELETE /api/students/:id
  * @access Private - Requires admin role
  */
 const remove = async (req, res) => {
@@ -75,7 +75,7 @@ const remove = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized - Admin access required' });
     }
 
-    await Friend.remove(id);
+    await Student.remove(id);
     res.status(204).send();
   } catch (error) {
     res.status(400).json({ error: error.message });

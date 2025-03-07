@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "./ui/input";
 
-export function FriendForm({ onSubmit, initialData, onCancel }) {
+export function StudentForm({ onSubmit, initialData, onCancel }) {
   const initialFormState = {
     name: "",
     age: "",
@@ -141,7 +141,7 @@ export function FriendForm({ onSubmit, initialData, onCancel }) {
           type="submit"
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          {initialData ? "Update Friend" : "Add Friend"}
+          {initialData ? "Update Student" : "Add Student"}
         </button>
       </div>
     </form>

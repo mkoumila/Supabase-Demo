@@ -5,6 +5,7 @@ import {
   HomeIcon,
   UsersIcon,
   UserGroupIcon,
+  BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 
 /**
@@ -21,7 +22,8 @@ export function Sidebar({ user, isAdmin, onLogout }) {
 
   const navigation = [
     { name: "Home", href: "/", icon: HomeIcon },
-    { name: "Friends List", href: "/dashboard/friends", icon: UsersIcon },
+    { name: "Students List", href: "/dashboard/students", icon: UsersIcon },
+    { name: "Cities", href: "/dashboard/cities", icon: BuildingOffice2Icon },
     ...(isAdmin
       ? [{ name: "Users", href: "/dashboard/users", icon: UserGroupIcon }]
       : []),
@@ -32,7 +34,7 @@ export function Sidebar({ user, isAdmin, onLogout }) {
       <div className="flex flex-col flex-grow pt-5 bg-white overflow-y-auto">
         <div className="flex items-center flex-shrink-0 px-4">
           <h1 className="text-xl font-semibold text-gray-900">
-            Friends Manager
+            Students Manager
           </h1>
         </div>
         <div className="mt-5 flex-grow flex flex-col">
@@ -48,6 +50,15 @@ export function Sidebar({ user, isAdmin, onLogout }) {
                   "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                 )}
               >
+                <item.icon
+                  className={cn(
+                    location.pathname === item.href
+                      ? "text-gray-500"
+                      : "text-gray-400 group-hover:text-gray-500",
+                    "mr-3 flex-shrink-0 h-6 w-6"
+                  )}
+                  aria-hidden="true"
+                />
                 {item.name}
               </Link>
             ))}

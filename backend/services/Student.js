@@ -1,5 +1,5 @@
 /**
- * Friend Model
+ * Student Model
  * Handles all database operations for the friends table
  * Uses Supabase as the database provider
  */
@@ -21,23 +21,23 @@ const getAll = async () => {
     if (error) throw error;
     return data;
   } catch (error) {
-    throw new Error(`Failed to fetch friends: ${error.message}`);
+    throw new Error(`Failed to fetch students: ${error.message}`);
   }
 };
 
 /**
  * Create a new friend in the database
- * @param {Object} friendData - Friend information (name, age, job, etc.)
+ * @param {Object} studentData - Student information (name, age, job, etc.)
  * @param {string} userId - ID of the user creating the friend
  * @returns {Promise<Object>} Created friend object
  * @throws {Error} If database operation fails
  */
-const create = async (friendData, userId) => {
+const create = async (studentData, userId) => {
   try {
     const { data, error } = await supabase
       .from('friends')
       .insert([{ 
-        ...friendData,
+        ...studentData,
         created_by: userId 
       }])
       .select()
@@ -46,22 +46,22 @@ const create = async (friendData, userId) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    throw new Error(`Failed to create friend: ${error.message}`);
+    throw new Error(`Failed to create student: ${error.message}`);
   }
 };
 
 /**
  * Update an existing friend's information
- * @param {string} id - Friend ID to update
- * @param {Object} friendData - Updated friend information
+ * @param {string} id - Student ID to update
+ * @param {Object} studentData - Updated friend information
  * @returns {Promise<Object>} Updated friend object
  * @throws {Error} If database operation fails
  */
-const update = async (id, friendData) => {
+const update = async (id, studentData) => {
   try {
     const { data, error } = await supabase
       .from('friends')
-      .update(friendData)
+      .update(studentData)
       .eq('id', id)
       .select()
       .single();
@@ -69,13 +69,13 @@ const update = async (id, friendData) => {
     if (error) throw error;
     return data;
   } catch (error) {
-    throw new Error(`Failed to update friend: ${error.message}`);
+    throw new Error(`Failed to update student: ${error.message}`);
   }
 };
 
 /**
  * Delete a friend from the database
- * @param {string} id - Friend ID to delete
+ * @param {string} id - Student ID to delete
  * @returns {Promise<boolean>} True if deletion was successful
  * @throws {Error} If database operation fails
  */
@@ -89,7 +89,7 @@ const remove = async (id) => {
     if (error) throw error;
     return true;
   } catch (error) {
-    throw new Error(`Failed to delete friend: ${error.message}`);
+    throw new Error(`Failed to delete student: ${error.message}`);
   }
 };
 

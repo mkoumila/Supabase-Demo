@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import UsersPage from './pages/UsersPage';
+import CitiesPage from './pages/CitiesPage';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './context/AuthContext';
 
@@ -23,7 +24,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route
           path="/login"
-          element={user ? <Navigate to="/dashboard/friends" /> : <LoginPage />}
+          element={user ? <Navigate to="/dashboard/students" /> : <LoginPage />}
         />
 
         {/* Protected routes */}
@@ -32,12 +33,13 @@ function App() {
           element={
             user ? (
               <Routes>
-                <Route path="friends" element={<DashboardPage />} />
+                <Route path="students" element={<DashboardPage />} />
+                <Route path="cities" element={<CitiesPage />} />
                 <Route
                   path="users"
-                  element={isAdmin ? <UsersPage /> : <Navigate to="/dashboard/friends" />}
+                  element={isAdmin ? <UsersPage /> : <Navigate to="/dashboard/students" />}
                 />
-                <Route index element={<Navigate to="/dashboard/friends" replace />} />
+                <Route index element={<Navigate to="/dashboard/students" replace />} />
               </Routes>
             ) : (
               <Navigate to="/login" />

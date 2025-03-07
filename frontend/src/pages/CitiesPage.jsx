@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { studentService } from "../services/studentService";
-import { StudentForm } from "../components/StudentForm";
+import { cityService } from "../services/cityService";
+import { CityForm } from "../components/CityForm";
 import { useAuth } from "../context/AuthContext";
 import { Input } from "../components/ui/input";
 import {
@@ -28,84 +28,72 @@ import { Button } from "../components/ui/button";
 import LoginPage from "./LoginPage";
 
 /**
- * DashboardPage Component
+ * CitiesPage Component
  *
- * Protected admin dashboard that provides CRUD operations for students.
+ * Protected page that provides CRUD operations for cities.
  * Features include:
  * - Authentication check
  * - Admin-only actions (add, edit, delete)
  * - Search functionality
  * - Pagination
- * - Form handling for adding/editing students
+ * - Form handling for adding/editing cities
  */
-function DashboardPage() {
-  // State management for students and UI controls
-  const [students, setStudents] = useState([]);
-  const [editingStudent, setEditingStudent] = useState(null);
+function CitiesPage() {
+  // State management for cities and UI controls
+  const [cities, setCities] = useState([]);
+  const [editingCity, setEditingCity] = useState(null);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const itemsPerPage = 5; // Number of items to display per page
+  const itemsPerPage = 5;
   const [successMessage, setSuccessMessage] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [cityToDelete, setCityToDelete] = useState(null);
 
   // Auth context and navigation
   const { user, isAdmin, loading, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Load students when user is authenticated
+  // Load cities when user is authenticated
   useEffect(() => {
     if (user) {
-      loadStudents();
+      loadCities();
     }
   }, [user]);
 
-  // Filter students based on search query (case-insensitive)
-  const filteredStudents = students.filter((student) =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter cities based on search query (case-insensitive)
+  const filteredCities = cities.filter((city) =>
+    city.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Calculate pagination values
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredCities.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentStudents = filteredStudents.slice(startIndex, endIndex);
+  const currentCities = filteredCities.slice(startIndex, endIndex);
 
   // Reset to first page when search query changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  /**
-   * Handle page change in pagination
-   * @param {number} page - The page number to navigate to
-   */
   const handlePageChange = (page) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  /**
-   * Fetch students data from the API
-   * Handles loading state and error handling
-   */
-  async function loadStudents() {
+  async function loadCities() {
     try {
-      const data = await studentService.getAllStudents();
-      setStudents(data);
+      const data = await cityService.getAllCities();
+      setCities(data);
       setError(null);
     } catch (error) {
-      console.error("Error loading students:", error);
-      setError("Failed to load students");
+      console.error("Error loading cities:", error);
+      setError("Failed to load cities");
     }
   }
 
-  /**
-   * Handle user logout
-   * Redirects to home page after successful logout
-   */
   async function handleLogout() {
     try {
       await logout();
@@ -116,87 +104,61 @@ function DashboardPage() {
     }
   }
 
-  /**
-   * Handle editing a student
-   * Shows the form and scrolls to top
-   * @param {Object} student - The student object to edit
-   */
-  function handleEdit(student) {
-    setEditingStudent(student);
+  function handleEdit(city) {
+    setEditingCity(city);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  /**
-   * Handle form cancellation
-   * Resets form state and hides the form
-   */
   const handleCancel = () => {
-    setEditingStudent(null);
+    setEditingCity(null);
     setShowForm(false);
   };
 
-  /**
-   * Add function to show temporary success message
-   * @param {string} message - The message to show
-   */
   const showSuccessMessage = (message) => {
     setSuccessMessage(message);
-    setTimeout(() => setSuccessMessage(null), 3000); // Hide after 3 seconds
+    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
-  /**
-   * Handle form submission for creating/updating a student
-   * @param {Object} formData - The form data to submit
-   */
   async function handleSubmit(formData) {
     try {
-      if (editingStudent) {
-        await studentService.updateStudent(editingStudent.id, formData);
-        setEditingStudent(null);
-        showSuccessMessage("Student updated successfully!");
+      if (editingCity) {
+        await cityService.updateCity(editingCity.id, formData);
+        setEditingCity(null);
+        showSuccessMessage("City updated successfully!");
       } else {
-        await studentService.createStudent(formData);
-        showSuccessMessage("Student created successfully!");
+        await cityService.createCity(formData);
+        showSuccessMessage("City created successfully!");
       }
-      loadStudents();
+      loadCities();
       setError(null);
       setShowForm(false);
     } catch (error) {
-      console.error("Error saving student:", error);
-      setError(error.message || "Failed to save student");
+      console.error("Error saving city:", error);
+      setError(error.message || "Failed to save city");
     }
   }
 
-  /**
-   * Handle student deletion
-   * Shows confirmation dialog before deleting
-   * @param {string} id - The ID of the student to delete
-   */
-  const handleDeleteClick = (student) => {
-    setStudentToDelete(student);
+  const handleDeleteClick = (city) => {
+    setCityToDelete(city);
     setDeleteDialogOpen(true);
   };
 
-  /**
-   * New function to handle actual deletion
-   */
   const handleConfirmDelete = async () => {
     try {
-      await studentService.deleteStudent(studentToDelete.id);
-      loadStudents();
+      await cityService.deleteCity(cityToDelete.id);
+      loadCities();
       setError(null);
-      showSuccessMessage("Student deleted successfully!");
+      showSuccessMessage("City deleted successfully!");
     } catch (error) {
-      console.error("Error deleting student:", error);
-      setError(error.message || "Failed to delete student");
+      console.error("Error deleting city:", error);
+      setError(error.message || "Failed to delete city");
     } finally {
       setDeleteDialogOpen(false);
-      setStudentToDelete(null);
+      setCityToDelete(null);
     }
   };
 
-  // Show loading spinner while authentication is being checked
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -205,7 +167,6 @@ function DashboardPage() {
     );
   }
 
-  // Show login page if user is not authenticated
   if (!user) {
     return <LoginPage />;
   }
@@ -221,19 +182,21 @@ function DashboardPage() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">
-                Students List
+                Cities List
               </h1>
               <p className="mt-1 text-sm text-gray-600">
-                Manage and organize your students
+                Manage and organize your cities
               </p>
             </div>
-            <Button
-              onClick={() => setShowForm(true)}
-              variant="default"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Add New Student
-            </Button>
+            {isAdmin && (
+              <Button
+                onClick={() => setShowForm(true)}
+                variant="default"
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Add New City
+              </Button>
+            )}
           </div>
 
           {successMessage && (
@@ -248,12 +211,12 @@ function DashboardPage() {
             </div>
           )}
 
-          {/* Student form for adding/editing - only visible to admin users when needed */}
-          {showForm && (
+          {/* City form for adding/editing - only visible to admin users when needed */}
+          {showForm && isAdmin && (
             <div className="bg-white shadow rounded-lg mb-8">
-              <StudentForm
+              <CityForm
                 onSubmit={handleSubmit}
-                initialData={editingStudent}
+                initialData={editingCity}
                 onCancel={handleCancel}
               />
             </div>
@@ -266,7 +229,7 @@ function DashboardPage() {
               <div className="max-w-sm">
                 <Input
                   type="text"
-                  placeholder="Search students by name..."
+                  placeholder="Search cities by name..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="max-w-sm"
@@ -274,56 +237,50 @@ function DashboardPage() {
               </div>
             </div>
 
-            {/* Table section with horizontal scroll */}
-            <div className="w-full overflow-x-auto">
+            {/* Table section */}
+            <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[150px]">Name</TableHead>
-                    <TableHead className="min-w-[80px]">Age</TableHead>
-                    <TableHead className="min-w-[150px]">Job</TableHead>
-                    <TableHead className="min-w-[200px]">Email</TableHead>
-                    <TableHead className="min-w-[150px]">Phone</TableHead>
-                    <TableHead className="min-w-[200px]">Address</TableHead>
-                    <TableHead className="min-w-[120px]">Created At</TableHead>
-                    {isAdmin && (
-                      <TableHead className="min-w-[120px]">Actions</TableHead>
-                    )}
+                    <TableHead>Name</TableHead>
+                    {/* <TableHead>Weight</TableHead> */}
+                    <TableHead>Created At</TableHead>
+                    <TableHead>Updated At</TableHead>
+                    {isAdmin && <TableHead>Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Show message when no students are found */}
-                  {currentStudents.length === 0 ? (
+                  {currentCities.length === 0 ? (
                     <TableRow>
                       <TableCell
-                        colSpan={isAdmin ? 8 : 7}
+                        colSpan={isAdmin ? 5 : 4}
                         className="text-center py-4"
                       >
                         {searchQuery
-                          ? "No students found matching your search"
-                          : "No students found"}
+                          ? "No cities found matching your search"
+                          : "No cities found"}
                       </TableCell>
                     </TableRow>
                   ) : (
-                    // Map through students and display their data
-                    currentStudents.map((student) => (
-                      <TableRow key={student.id}>
+                    currentCities.map((city) => (
+                      <TableRow key={city.id}>
                         <TableCell className="font-medium">
-                          {student.name}
+                          {city.name}
                         </TableCell>
-                        <TableCell>{student.age}</TableCell>
-                        <TableCell>{student.job}</TableCell>
-                        <TableCell>{student.email}</TableCell>
-                        <TableCell>{student.phone}</TableCell>
-                        <TableCell>{student.address}</TableCell>
+                        {/* <TableCell>{city.weight}</TableCell> */}
                         <TableCell>
-                          {new Date(student.created_at).toLocaleDateString()}
+                          {new Date(city.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {city.updated_at
+                            ? new Date(city.updated_at).toLocaleDateString()
+                            : "-"}
                         </TableCell>
                         {isAdmin && (
                           <TableCell>
                             <div className="flex space-x-2">
                               <Button
-                                onClick={() => handleEdit(student)}
+                                onClick={() => handleEdit(city)}
                                 variant="outline"
                                 size="sm"
                                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
@@ -331,7 +288,7 @@ function DashboardPage() {
                                 Edit
                               </Button>
                               <Button
-                                onClick={() => handleDeleteClick(student)}
+                                onClick={() => handleDeleteClick(city)}
                                 variant="destructive"
                                 size="sm"
                               >
@@ -346,8 +303,7 @@ function DashboardPage() {
                 </TableBody>
               </Table>
 
-              {/* Pagination component - only shown if there are more items than itemsPerPage */}
-              {filteredStudents.length > itemsPerPage && (
+              {filteredCities.length > itemsPerPage && (
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -360,15 +316,15 @@ function DashboardPage() {
         </div>
       </div>
 
-      {/* Add AlertDialog */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete{" "}
-              <span className="font-semibold">{studentToDelete?.name}</span>'s data
-              from the database.
+              <span className="font-semibold">{cityToDelete?.name}</span> from the
+              database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -386,4 +342,4 @@ function DashboardPage() {
   );
 }
 
-export default DashboardPage;
+export default CitiesPage; 

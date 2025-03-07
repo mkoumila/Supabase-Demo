@@ -6,9 +6,10 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const friendRoutes = require('./routes/friendRoutes');
+const studentRoutes = require('./routes/studentRoutes');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const cityRoutes = require('./routes/cityRoutes');
 
 const app = express();
 
@@ -37,7 +38,8 @@ app.get("/api/health", (req, res) => {
 // Each route group is prefixed with the API prefix
 app.use("/api/auth", authRoutes);   // Authentication routes
 app.use("/api/users", userRoutes);  // User management routes
-app.use("/api", friendRoutes);           // Friend management routes
+app.use("/api", studentRoutes);     // Student management routes
+app.use("/api", cityRoutes);         // City management routes
 
 // 404 handler for undefined routes
 app.use((req, res) => {
